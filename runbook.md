@@ -53,8 +53,8 @@ model_reasoning_effort = "high"
 
 ### Step 4 — The Codex plugin for Claude Code (the bridge between the two)
 
-The official plugin that gives Claude Code its delegation skills toward Codex
-(`codex-implementation`, `codex-review`, `codex-computer-use`):
+The official plugin that gives Claude Code its delegation commands toward Codex
+(`/codex:rescue`, `/codex:review`, `/codex:adversarial-review`, `/codex:transfer`):
 
 1. Read the install instructions in the README: **https://github.com/openai/codex-plugin-cc**
    and follow them exactly (installation happens from inside Claude Code, through its plugin
@@ -97,10 +97,12 @@ How to apply:
 - Things that are unnecessarily token hungry (computer use, codebase analysis, big scans): do them
   with cheaper models or plain scripts and report results back — never burn main-session tokens.
   Mechanical grepping of logs/transcripts: no LLM at all, use Bash/grep/python.
-- Mechanics: gpt-5.5 is reachable through the Codex CLI — use the codex-implementation,
-  codex-review, and codex-computer-use skills (from the codex plugin); for work they don't cover
-  (investigation, data analysis), run `codex exec -s read-only` directly with a self-contained prompt.
-- Codex is notably better at computer use and UI/UX verification — prefer it there.
+- Mechanics: gpt-5.5 is reachable through the Codex CLI — use the codex plugin's commands
+  (`/codex:rescue` to delegate implementation, investigation, or fixes; `/codex:review` /
+  `/codex:adversarial-review` for reviews); for work they don't cover (data analysis, one-off
+  questions), run `codex exec -s read-only` directly with a self-contained prompt.
+- Codex is notably better at computer use and UI/UX verification — prefer it there (for browser
+  tasks: `codex exec -s workspace-write -c sandbox_workspace_write.network_access=true`).
 - Claude models run via the Agent/Workflow model parameter.
 
 Using gpt-5.5 inside workflows and subagents (the model parameter only takes Claude models):
