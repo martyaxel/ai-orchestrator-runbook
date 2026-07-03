@@ -38,7 +38,9 @@ Then in Cursor: install the **Claude Code** and **Codex** extensions from the ma
 
 Run `claude`, ask the user to finish the login in the browser; same with `codex`.
 
-**VERIFY:** `codex exec -s read-only "reply exactly: PONG"` returns PONG.
+**VERIFY:** `codex exec -s read-only "reply exactly: PONG" < /dev/null` returns PONG.
+(The `< /dev/null` is not optional: without it, `codex exec` run from a non-interactive shell —
+i.e. by the agent executing this runbook — hangs forever on "Reading additional input from stdin...".)
 
 ### Step 3 — Codex config (`~/.codex/config.toml`)
 
@@ -68,7 +70,8 @@ Write the file with EXACTLY the content between the markers. Two adaptations all
 numbers in the `cost` column, based on the user's subscriptions (high cost score = cheap for
 them); (b) if the user has an existing `AGENTS.md` (Step 0), add as the first line of the file:
 `@<path-to-AGENTS.md>` (Claude Code imports the referenced file). If CLAUDE.md already exists,
-show the diff and ask for OK.
+show the diff and ask for OK. If the user's rules live only in per-project CLAUDE.md files,
+still write the global one — it complements the project files, it does not replace them.
 
 <<<CLAUDE_MD_START>>>
 ## Picking the right models for workflows and subagents
@@ -129,7 +132,9 @@ import is on the first line.
 
 ### Step 6 — End-to-end test (do not skip it)
 
-In a temporary folder with `git init`: ask Claude Code (from Cursor) to delegate to Codex the
+In a temporary folder with `git init` — **create it under your home directory, NOT in `/tmp`**
+(the plugin's sandbox may have `/tmp` read-only, which makes this test fail mysteriously even
+when everything is installed correctly): ask Claude Code (from Cursor) to delegate to Codex the
 creation of a `hello.py` that prints the sum 2+3, and to verify its work. Then **verify it
 YOURSELF** (the agent executing this runbook): the file exists and `python3 hello.py` prints `5`.
 Delete the folder.
