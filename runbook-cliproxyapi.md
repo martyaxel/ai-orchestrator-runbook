@@ -15,9 +15,10 @@
 
 You are configuring the "orchestrator + delegates" setup: the user works from **Cursor or
 VS Code** with **Claude Code** as the orchestrator (thinks, plans, delegates, verifies) and
-three delegates spawned as native subagents — **gpt-worker** (implementation),
-**fable-reviewer** (review) and **grok-worker** (third independent perspective; optional,
-needs a Grok/X login on the proxy). All providers are reached through **CLIProxyAPI**, authenticated
+a roster of delegates spawned as native subagents — **gpt-worker** (implementation),
+**fable-reviewer** (review), plus optional extra reviewers per proxy login: **grok-worker**
+(Grok/X) and **kimi-worker** (Kimi/Moonshot). The same recipe extends to any OAuth provider
+CLIProxyAPI supports. All providers are reached through **CLIProxyAPI**, authenticated
 by OAuth against the user's existing subscriptions. No pay-per-token API keys.
 
 Run the steps in order; each has a VERIFY — do not move on if it fails. At **[HUMAN]** points,
@@ -193,6 +194,35 @@ Why analysis-only tools for grok: a new provider earns Write/Edit by proving its
 reviews first — the two-key rule (implementer ≠ reviewer) stays intact, and a third
 voice is most valuable exactly where the first two disagree.
 
+`~/.claude/agents/kimi-worker.md` (optional — only with a Kimi/Moonshot OAuth login on the
+proxy; same earn-Write/Edit-later rule):
+
+```markdown
+---
+name: kimi-worker
+description: Fourth independent perspective for reviews and second opinions (Kimi K3, Moonshot). Use for multi-model review panels and arbitration when additional independent views are valuable.
+model: kimi-k3
+tools: Read, Grep, Glob, Bash
+effort: high
+---
+
+You are the Kimi analysis worker — an independent perspective in a multi-model
+review setup (alongside Claude, GPT and Grok reviewers).
+
+Analyze what you are asked, verify on content (read the actual files, run the
+actual checks — never trust summaries), and report honestly: if a check fails
+or you are uncertain, say so plainly. Your value is independence: do not
+anchor on what other reviewers concluded; form your own judgment from the
+evidence.
+
+Note: you tend to spend output budget on reasoning — keep your final answer
+complete and self-contained; the final message is the deliverable.
+```
+
+Kimi-specific gotcha: K3 reasons before answering and the reasoning consumes output
+tokens — with a small `max_tokens` you get an empty text back (the budget went to a
+thinking block). Give it room; the identity probe below needs a few hundred tokens.
+
 Why fable and not a cheaper model: the reviewer is the quality gate — per the
 model table, review takes the highest intelligence+taste available, and cost
 is only a tie-breaker. (If your main loop already runs on fable, this
@@ -224,9 +254,10 @@ exact output: echo test-$((7*191))
 **VERIFY:** two things come back: **"gpt-5.6-sol"** (the real identity, not a Claude in
 disguise) and **`test-1337`** (tools actually execute; the unseen arithmetic prevents a
 memorized answer). Repeat the identity check for `fable-reviewer` (expect a Claude Fable
-answer) and, if configured, `grok-worker` (expect a Grok answer; note the marketing name may
-differ from the model ID — e.g. grok-4.5 introduces itself as "Grok 4, built by xAI" — the
-tool-execution proof is the part that matters).
+answer) and, if configured, each optional reviewer — `grok-worker` (expect a Grok answer),
+`kimi-worker` (expect a Kimi/Moonshot answer). Note the marketing name may differ from the
+model ID — e.g. grok-4.5 introduces itself as "Grok 4, built by xAI" — the tool-execution
+proof is the part that matters.
 
 ### Step 6 — The global CLAUDE.md (`~/.claude/CLAUDE.md`)
 
