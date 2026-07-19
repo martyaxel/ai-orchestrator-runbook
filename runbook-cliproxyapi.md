@@ -15,8 +15,9 @@
 
 You are configuring the "orchestrator + delegates" setup: the user works from **Cursor or
 VS Code** with **Claude Code** as the orchestrator (thinks, plans, delegates, verifies) and
-two delegates spawned as native subagents — **gpt-worker** (implementation) and
-**fable-reviewer** (review). Both providers are reached through **CLIProxyAPI**, authenticated
+three delegates spawned as native subagents — **gpt-worker** (implementation),
+**fable-reviewer** (review) and **grok-worker** (third independent perspective; optional,
+needs a Grok/X login on the proxy). All providers are reached through **CLIProxyAPI**, authenticated
 by OAuth against the user's existing subscriptions. No pay-per-token API keys.
 
 Run the steps in order; each has a VERIFY — do not move on if it fails. At **[HUMAN]** points,
@@ -166,6 +167,32 @@ implementer's summary. Do not modify files. Return specific, actionable
 findings to the parent agent.
 ```
 
+`~/.claude/agents/grok-worker.md` (optional — only if you added a Grok/X OAuth login in
+Step 1; adjust the model ID to whatever `/v1/models` on your proxy actually lists):
+
+```markdown
+---
+name: grok-worker
+description: Third independent perspective for reviews, arbitration tie-breaks, and second-opinion analysis. Use when the other two disagree, or when a task benefits from a third independent view.
+model: grok-4.5
+tools: Read, Grep, Glob, Bash
+effort: high
+---
+
+You are the Grok analysis worker — the third independent perspective in a
+multi-model review setup (alongside a Claude reviewer and a GPT implementer).
+
+Analyze what you are asked, verify on content (read the actual files, run the
+actual checks — never trust summaries), and report honestly: if a check fails
+or you are uncertain, say so plainly. Your value is independence: do not
+anchor on what other reviewers concluded; form your own judgment from the
+evidence.
+```
+
+Why analysis-only tools for grok: a new provider earns Write/Edit by proving itself on
+reviews first — the two-key rule (implementer ≠ reviewer) stays intact, and a third
+voice is most valuable exactly where the first two disagree.
+
 Why fable and not a cheaper model: the reviewer is the quality gate — per the
 model table, review takes the highest intelligence+taste available, and cost
 is only a tie-breaker. (If your main loop already runs on fable, this
@@ -196,7 +223,10 @@ exact output: echo test-$((7*191))
 
 **VERIFY:** two things come back: **"gpt-5.6-sol"** (the real identity, not a Claude in
 disguise) and **`test-1337`** (tools actually execute; the unseen arithmetic prevents a
-memorized answer). Repeat the identity check for `fable-reviewer` (expect a Claude Fable answer).
+memorized answer). Repeat the identity check for `fable-reviewer` (expect a Claude Fable
+answer) and, if configured, `grok-worker` (expect a Grok answer; note the marketing name may
+differ from the model ID — e.g. grok-4.5 introduces itself as "Grok 4, built by xAI" — the
+tool-execution proof is the part that matters).
 
 ### Step 6 — The global CLAUDE.md (`~/.claude/CLAUDE.md`)
 
